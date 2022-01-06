@@ -1,0 +1,13 @@
+[package]
+name = "rust-macos-perf"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build.release]
+debug=true
+
+[build-dependencies]
+bindgen = "0.59.2"
+cc = "1.0.72"
