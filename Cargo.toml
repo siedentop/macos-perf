@@ -11,3 +11,10 @@ debug=true
 [build-dependencies]
 bindgen = "0.59.2"
 cc = "1.0.72"
+
+[dependencies]
+thiserror = "1.0.30"
+
+[dev-dependencies]
+criterion = "0.3.5"
+sudo = "0.6.0"

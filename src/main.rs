@@ -1,10 +1,7 @@
-use rust_macos_perf::{get_counters, setup_performance_counters};
+use rust_macos_perf::get_counters;
 
 fn main() {
     println!("Hello, world!");
-    let pc = unsafe {
-        setup_performance_counters();
-        get_counters()
-    };
+    let pc = get_counters().unwrap();
     println!("{:?}", pc);
 }
