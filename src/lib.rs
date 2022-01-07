@@ -35,6 +35,8 @@ pub enum ASilPerfError {
     NotInitialized,
     #[error("kpc_get_thread_counters failed, run as sudo?")]
     PermissionDenied,
+    #[error("Initialization failed {0}")]
+    InitFailed(String),
 }
 
 pub fn get_counters() -> Result<PerformanceCounters, ASilPerfError> {
@@ -42,17 +44,34 @@ pub fn get_counters() -> Result<PerformanceCounters, ASilPerfError> {
         return Err(ASilPerfError::NotInitialized);
     }
     let pc = unsafe {
-        // ();
-        bindings::get_counters()
+        let mut pc = bindings::performance_counters {
+            cycles: 0.0,
+            branches: 0.0,
+            missed_branches: 0.0,
+            instructions: 0.0,
+        };
+        let err_code = bindings::get_counters_checked(&mut pc);
+        if err_code != 0 {
+            log::error!(
+                "get_counters_checked returned {}. Check `bsd/sys/errno.h`.",
+                err_code
+            ); // Check here: https://opensource.apple.com/source/xnu/xnu-201/bsd/sys/errno.h
+            return Err(ASilPerfError::PermissionDenied);
+        }
+        pc
     };
     Ok(PerformanceCounters::from(pc))
 }
 
-pub fn init() -> () {
+pub fn init() -> Result<(), ASilPerfError> {
     unsafe {
-        bindings::setup_performance_counters();
+        let errno = bindings::setup_performance_counters();
+        if errno != 0 {
+            return Err(ASilPerfError::InitFailed(format!("{}", errno)));
+        }
     }
     GLOBAL_INITIALIZED.with(|initialized| *initialized.borrow_mut() = true);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -64,10 +83,13 @@ mod tests {
 
     #[test]
     fn test_counters_are_monotonic() {
-        init();
+        init().unwrap();
 
         let has_sudo = sudo::check();
-        assert_eq!(has_sudo, RunningAs::Root, "This test requires sudo");
+        if has_sudo != RunningAs::Root {
+            println!("This test requires sudo");
+            return;
+        }
 
         let start = get_counters().unwrap();
 
@@ -91,16 +113,16 @@ mod tests {
         assert_eq!(ASilPerfError::NotInitialized, result.unwrap_err());
 
         // Now initialize the library.
-        init();
+        let iresult = init();
+        assert!(iresult.is_ok());
         let result = get_counters();
         let has_sudo = sudo::check();
-        // TODO: We should run tests in both configurations.
+
         if has_sudo == RunningAs::Root {
             assert!(result.is_ok());
         } else {
-            // TODO: put back in. Requires modification of C function.
-            // assert!(result.is_err());
-            // assert_eq!(ASilPerfError::PermissionDenied, result.unwrap_err());
+            assert!(result.is_err());
+            assert_eq!(ASilPerfError::PermissionDenied, result.unwrap_err());
         }
     }
 }

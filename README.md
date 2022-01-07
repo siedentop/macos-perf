@@ -5,6 +5,9 @@ I shortened "Apple Silicon Performance" to *ASilPerf*.
 # Requirements
 1. This only works on Apple M1 series chips.
 
+## Developments
+Please run tests both as sudo and without sudo.
+
 
 # Inspirations | Related Work
 * Lemire: 

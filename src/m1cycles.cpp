@@ -68,84 +68,99 @@ KPERF_LIST
 uint64_t g_counters[COUNTERS_COUNT];
 uint64_t g_config[COUNTERS_COUNT];
 
-static void configure_rdtsc() {
+static int configure_rdtsc() {
   if (kpc_set_config(KPC_MASK, g_config)) {
     printf("kpc_set_config failed\n");
-    return;
+    return 5;
   }
 
   if (kpc_force_all_ctrs_set(1)) {
     printf("kpc_force_all_ctrs_set failed\n");
-    return;
+    return 6;
   }
 
   if (kpc_set_counting(KPC_MASK)) {
     printf("kpc_set_counting failed\n");
-    return;
+    return 7;
   }
 
   if (kpc_set_thread_counting(KPC_MASK)) {
     printf("kpc_set_thread_counting failed\n");
-    return;
+    return 8;
   }
+  return 0;
 }
 
-static void init_rdtsc() {
+static int init_rdtsc() {
   void *kperf = dlopen(
       "/System/Library/PrivateFrameworks/kperf.framework/Versions/A/kperf",
       RTLD_LAZY);
   if (!kperf) {
     printf("kperf = %p\n", kperf);
-    return;
+    return 1;
   }
 #define F(ret, name, ...)                                                      \
   name = (name##proc *)(dlsym(kperf, #name));                                  \
   if (!name) {                                                                 \
     printf("%s = %p\n", #name, (void *)name);                                  \
-    return;                                                                    \
+    return 2;                                                                  \
   }
   KPERF_LIST
 #undef F
 
   if (kpc_get_counter_count(KPC_MASK) != COUNTERS_COUNT) {
     printf("wrong fixed counters count\n");
-    return;
+    return 3;
   }
 
   if (kpc_get_config_count(KPC_MASK) != CONFIG_COUNT) {
     printf("wrong fixed config count\n");
-    return;
+    return 4;
   }
   g_config[0] = CPMU_CORE_CYCLE | CFGWORD_EL0A64EN_MASK;
   g_config[3] = CPMU_INST_BRANCH | CFGWORD_EL0A64EN_MASK;
   g_config[4] = CPMU_SYNC_BR_ANY_MISP | CFGWORD_EL0A64EN_MASK;
   g_config[5] = CPMU_INST_A64 | CFGWORD_EL0A64EN_MASK;
 
-  configure_rdtsc();
+  return configure_rdtsc(); // TODO: configure_rdtsc() should be called only
+                            // once?
 }
 
-void setup_performance_counters(void) {
+int setup_performance_counters(void) {
   int test_high_perf_cores = 1;
+  int errno = 0;
   if (test_high_perf_cores) {
-    pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+    errno = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
   } else {
-    pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0);
+    errno = pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0);
   }
-  init_rdtsc();
-  configure_rdtsc();
+  if (errno) {
+    printf("pthread_set_qos_class_self_np failed\n");
+    return errno;
+  }
+
+  errno = init_rdtsc();
+  if (errno) {
+    printf("init_rdtsc failed\n");
+    return errno;
+  }
+  errno = configure_rdtsc();
+  if (errno) {
+    printf("configure_rdtsc failed\n");
+    return errno;
+  }
+
+  return errno;
 }
 
-extern performance_counters get_counters(void) {
-  static bool warned = false;
-  if (kpc_get_thread_counters(0, COUNTERS_COUNT, g_counters)) {
-    if (!warned) {
-      printf("kpc_get_thread_counters failed, run as sudo?\n");
-      warned = true;
-    }
-    return 1;
+extern int get_counters_checked(performance_counters &counters) {
+  const int err = kpc_get_thread_counters(0, COUNTERS_COUNT, g_counters);
+  if (!err) {
+    // g_counters[3 + 2] gives you the number of instructions 'decoded'
+    // whereas g_counters[1] might give you the number of instructions
+    // 'retired'.
+    counters = performance_counters{g_counters[0 + 2], g_counters[3 + 2],
+                                    g_counters[4 + 2], g_counters[5 + 2]};
   }
-  // g_counters[3 + 2] gives you the number of instructions 'decoded'
-  // whereas g_counters[1] might give you the number of instructions 'retired'.
-  return performance_counters{g_counters[0 + 2], g_counters[3 + 2],
-                              g_counters[4 + 2], g_counters[5 + 2]};
+  return err;
 }

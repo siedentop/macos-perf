@@ -13,6 +13,7 @@ bindgen = "0.59.2"
 cc = "1.0.72"
 
 [dependencies]
+log = "0.4.14"
 thiserror = "1.0.30"
 
 [dev-dependencies]

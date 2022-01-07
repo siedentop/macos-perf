@@ -57,8 +57,14 @@ inline performance_counters operator-(const performance_counters &a,
                               a.instructions - b.instructions);
 }
 
-void setup_performance_counters();
+/// Setup the performance counters.
+/// Returns err val from [1] will be returned.
+/// [1]: https://opensource.apple.com/source/xnu/xnu-201/bsd/sys/errno.h
+int setup_performance_counters();
 
-extern performance_counters get_counters();
+/// Fill performance_counters arg and return Error code.
+/// The error code is undocumented but the same as returned by
+/// `kpc_get_thread_counters`.
+extern int get_counters_checked(performance_counters &);
 
 #endif

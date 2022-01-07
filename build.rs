@@ -22,7 +22,7 @@ fn main() {
         .clang_arg(r"-std=c++17")
         .header("wrapper.hpp")
         .dynamic_link_require_all(true)
-        .allowlist_function("get_counters")
+        .allowlist_function("get_counters_checked")
         .allowlist_function("setup_performance_counters")
         .allowlist_type("performance_counters")
         .generate()
