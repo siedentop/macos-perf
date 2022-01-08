@@ -2,30 +2,10 @@ use std::cell::RefCell;
 
 use thiserror::Error;
 
-mod bindings {
-    #![allow(non_upper_case_globals)]
-    #![allow(non_camel_case_types)]
-    #![allow(non_snake_case)]
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
+pub mod performance_counters;
+pub use performance_counters::PerformanceCounters;
 
-#[derive(Debug, Clone)]
-pub struct PerformanceCounters {
-    pub cycles: f64,
-    pub branches: f64,
-    pub missed_branches: f64,
-    pub instructions: f64,
-}
-impl From<bindings::performance_counters> for PerformanceCounters {
-    fn from(counters: bindings::performance_counters) -> Self {
-        PerformanceCounters {
-            cycles: counters.cycles,
-            branches: counters.branches,
-            missed_branches: counters.missed_branches,
-            instructions: counters.instructions,
-        }
-    }
-}
+mod bindings;
 
 thread_local!(static GLOBAL_INITIALIZED: RefCell<bool> = RefCell::new(false));
 
@@ -72,6 +52,29 @@ pub fn init() -> Result<(), ASilPerfError> {
     }
     GLOBAL_INITIALIZED.with(|initialized| *initialized.borrow_mut() = true);
     Ok(())
+}
+
+#[macro_export]
+/// Runs a block a specified number of times and returns the average performance counters.
+// Inspired by the timeit crate.
+macro_rules! timeit_loops {
+    ($loops:expr, $code:block) => {{
+        use rust_macos_perf::get_counters;
+        use rust_macos_perf::PerformanceCounters;
+
+        let n = $loops;
+        let start = get_counters();
+        for _ in 0..n {
+            $code
+        }
+        let end = get_counters();
+
+        match (start, end) {
+            (Ok(start), Ok(end)) => Ok((end - start) / n),
+            (Err(start), _) => Err(start),
+            (_, Err(end)) => Err(end),
+        }
+    }};
 }
 
 #[cfg(test)]
