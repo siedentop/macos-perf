@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use thiserror::Error;
 
 pub mod performance_counters;
-pub use performance_counters::PerformanceCounters;
+pub use performance_counters::{compare_perf_counters, PerformanceCounters};
 
 mod bindings;
 

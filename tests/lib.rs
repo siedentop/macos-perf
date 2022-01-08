@@ -14,12 +14,12 @@ fn test_timeit_loops_macro() -> eyre::Result<()> {
 
     init()?;
 
-    let pc: PerformanceCounters = timeit_loops!(1000, {
+    let pc: PerformanceCounters = timeit_loops! {1000, {
         // Do some random work.
         let n = black_box(1000);
         let x = (0..n).fold(0, |a, b| a ^ b);
         assert_eq!(x, 0);
-    })?;
+    }}?;
 
     // Check that the counters are monotonic.
     assert!(pc.cycles > 0.0);

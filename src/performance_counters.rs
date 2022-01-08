@@ -42,3 +42,18 @@ impl std::ops::Sub<PerformanceCounters> for PerformanceCounters {
         }
     }
 }
+
+/// Print a comparison string. Comparing `a` and `b` in percentage.
+pub fn compare_perf_counters(a: &PerformanceCounters, b: &PerformanceCounters) -> String {
+    let cycles_diff = (a.cycles - b.cycles) / a.cycles;
+    let branches_diff = (a.branches - b.branches) / a.branches;
+    let missed_branches_diff = (a.missed_branches - b.missed_branches) / a.missed_branches;
+    let instructions_diff = (a.instructions - b.instructions) / a.instructions;
+    format!(
+        "cycles: {:.2}% branches: {:.2}% missed_branches: {:.2}% instructions: {:.2}%",
+        cycles_diff * 100.0,
+        branches_diff * 100.0,
+        missed_branches_diff * 100.0,
+        instructions_diff * 100.0
+    )
+}
