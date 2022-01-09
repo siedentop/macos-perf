@@ -20,7 +20,7 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .clang_arg(r"-std=c++17")
-        .header("wrapper.hpp")
+        .header("src/m1cycles.hpp")
         .dynamic_link_require_all(true)
         .allowlist_function("get_counters_checked")
         .allowlist_function("setup_performance_counters")

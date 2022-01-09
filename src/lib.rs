@@ -25,10 +25,10 @@ pub fn get_counters() -> Result<PerformanceCounters, ASilPerfError> {
     }
     let pc = unsafe {
         let mut pc = bindings::performance_counters {
-            cycles: 0.0,
-            branches: 0.0,
-            missed_branches: 0.0,
-            instructions: 0.0,
+            cycles: 0,
+            branches: 0,
+            missed_branches: 0,
+            instructions: 0,
         };
         let err_code = bindings::get_counters_checked(&mut pc);
         if err_code != 0 {

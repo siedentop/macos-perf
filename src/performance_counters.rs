@@ -10,10 +10,10 @@ pub struct PerformanceCounters {
 impl From<bindings::performance_counters> for PerformanceCounters {
     fn from(counters: bindings::performance_counters) -> Self {
         PerformanceCounters {
-            cycles: counters.cycles,
-            branches: counters.branches,
-            missed_branches: counters.missed_branches,
-            instructions: counters.instructions,
+            cycles: counters.cycles as f64,
+            branches: counters.branches as f64,
+            missed_branches: counters.missed_branches as f64,
+            instructions: counters.instructions as f64,
         }
     }
 }
