@@ -1,13 +1,9 @@
 [package]
-name = "rust-macos-perf"
+name = "macos-perf"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[build.release]
-debug=true
-
+description = "Measure the performance of Rust code on Apple's M1 series chips using performance counters."
+license = "MIT"
 
 [build-dependencies]
 bindgen = "0.59.2"

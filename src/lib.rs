@@ -10,7 +10,7 @@ mod bindings;
 thread_local!(static GLOBAL_INITIALIZED: RefCell<bool> = RefCell::new(false));
 
 #[derive(Error, Debug, PartialEq, Eq)]
-pub enum ASilPerfError {
+pub enum PerfError {
     #[error("Library has not been initialized. Call `ASilPerf::init()` first.")]
     NotInitialized,
     #[error("kpc_get_thread_counters failed, run as sudo?")]
@@ -19,9 +19,9 @@ pub enum ASilPerfError {
     InitFailed(String),
 }
 
-pub fn get_counters() -> Result<PerformanceCounters, ASilPerfError> {
+pub fn get_counters() -> Result<PerformanceCounters, PerfError> {
     if !GLOBAL_INITIALIZED.with(|initialized| *initialized.borrow()) {
-        return Err(ASilPerfError::NotInitialized);
+        return Err(PerfError::NotInitialized);
     }
     let pc = unsafe {
         let mut pc = bindings::performance_counters {
@@ -36,18 +36,18 @@ pub fn get_counters() -> Result<PerformanceCounters, ASilPerfError> {
                 "get_counters_checked returned {}. Check `bsd/sys/errno.h`.",
                 err_code
             ); // Check here: https://opensource.apple.com/source/xnu/xnu-201/bsd/sys/errno.h
-            return Err(ASilPerfError::PermissionDenied);
+            return Err(PerfError::PermissionDenied);
         }
         pc
     };
     Ok(PerformanceCounters::from(pc))
 }
 
-pub fn init() -> Result<(), ASilPerfError> {
+pub fn init() -> Result<(), PerfError> {
     unsafe {
         let errno = bindings::setup_performance_counters();
         if errno != 0 {
-            return Err(ASilPerfError::InitFailed(format!("{}", errno)));
+            return Err(PerfError::InitFailed(format!("{}", errno)));
         }
     }
     GLOBAL_INITIALIZED.with(|initialized| *initialized.borrow_mut() = true);
@@ -113,7 +113,7 @@ mod tests {
     fn test_load_required() {
         let result = get_counters();
         assert!(result.is_err());
-        assert_eq!(ASilPerfError::NotInitialized, result.unwrap_err());
+        assert_eq!(PerfError::NotInitialized, result.unwrap_err());
 
         // Now initialize the library.
         let iresult = init();
@@ -125,7 +125,7 @@ mod tests {
             assert!(result.is_ok());
         } else {
             assert!(result.is_err());
-            assert_eq!(ASilPerfError::PermissionDenied, result.unwrap_err());
+            assert_eq!(PerfError::PermissionDenied, result.unwrap_err());
         }
     }
 }
