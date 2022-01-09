@@ -8,7 +8,13 @@ and this project adheres to
 
 <!-- Release Process: https://dev.to/sharkdp/my-release-checklist-for-rust-programs-1m33 -->
 
-## [0.0.1] - 2022-01-08
+## [0.2.1] - 2022-01-08
+
+### Fixed
+
+- Fixed errors after crate renaming.
+
+## [0.1.0] - 2022-01-08
 
 I'm very happy to present this first version. Big thanks to [Dougallj](https://twitter.com/dougallj) for the original code (in C++) and to Daniel Lemire for his [blog post](http://lemire.me/blog/2021/03/24/counting-cycles-and-instructions-on-the-apple-m1-processor/).
 

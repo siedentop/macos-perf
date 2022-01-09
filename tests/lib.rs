@@ -1,7 +1,7 @@
 use criterion::black_box;
-use rust_macos_perf::{init, timeit_loops, PerformanceCounters};
+use macos_perf::{init, timeit_loops, PerformanceCounters};
 use sudo::RunningAs;
-extern crate rust_macos_perf;
+extern crate macos_perf;
 
 /// Test timeit_loops! macro.
 #[test]

@@ -1,6 +1,6 @@
 /// You need to run this with sudo.
 use criterion::black_box;
-use rust_macos_perf::{init, timeit_loops};
+use macos_perf::{init, timeit_loops};
 
 fn main() {
     init().unwrap();

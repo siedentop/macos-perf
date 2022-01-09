@@ -59,8 +59,8 @@ pub fn init() -> Result<(), PerfError> {
 // Inspired by the timeit crate.
 macro_rules! timeit_loops {
     ($loops:expr, $code:block) => {{
-        use rust_macos_perf::get_counters;
-        use rust_macos_perf::PerformanceCounters;
+        use macos_perf::get_counters;
+        use macos_perf::PerformanceCounters;
 
         let n = $loops;
         let start = get_counters();
