@@ -8,11 +8,15 @@ and this project adheres to
 
 <!-- Release Process: https://dev.to/sharkdp/my-release-checklist-for-rust-programs-1m33 -->
 
-## [0.2.1] - 2022-01-08
+## [0.1.1] - 2022-01-08
 
 ### Fixed
 
 - Fixed errors after crate renaming.
+
+### Added
+
+- Add links to repo
 
 ## [0.1.0] - 2022-01-08
 
